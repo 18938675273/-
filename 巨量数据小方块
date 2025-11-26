@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <style>
+      .tr_point {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="position: absolute; top: 10%; left: 5%; display: ">
+      <div
+        style="
+          width: 440px;
+          height: 399px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          margin-bottom: 10px;
+        "
+      >
+        <canvas
+          id="myCanvas"
+          width="460"
+          height="21000"
+          style="border: 1px solid #d3d3d3; background: #fff"
+        ></canvas>
+        <canvas
+          id="myCanvas_2"
+          width="460"
+          height="21000"
+          style="border: 1px solid #d3d3d3; background: #fff"
+        ></canvas>
+        <canvas
+          id="myCanvas_3"
+          width="460"
+          height="21000"
+          style="border: 1px solid #d3d3d3; background: #fff"
+        ></canvas>
+        <canvas
+          id="myCanvas_4"
+          width="460"
+          height="21000"
+          style="border: 1px solid #d3d3d3; background: #fff"
+        ></canvas>
+        <canvas
+          id="myCanvas_5"
+          width="460"
+          height="2016"
+          style="border: 1px solid #d3d3d3; background: #fff"
+        ></canvas>
+      </div>
+      <div>
+        <input type="button" class="btn_refresh" value="重新排序" />
+        <input type="button" class="btn_refresh" value="显示内存占用率" />
+        <input type="button" class="btn_refresh" value="保存重新分配的字节块" />
+      </div>
+      <div>
+        <table>
+          <tr>
+            <td></td>
+            <td></td>
+            <td>起始字节块</td>
+            <td>结束字节块</td>
+            <td>占用总数</td>
+          </tr>
+          <tr class="tr_color">
+            <td>操作命令 1:</td>
+            <td class="tr_point">占用字节</td>
+            <td>
+              <input type="text" class="td_from_1" value="3" />
+            </td>
+            <td>
+              <input type="text" class="td_last_1" value="11" />
+            </td>
+            <td class="all_unit">9</td>
+          </tr>
+          <tr class="tr_color">
+            <td>操作命令 2:</td>
+            <td class="tr_point">占用字节</td>
+            <td>
+              <input type="text" class="td_from_1" value="13" />
+            </td>
+            <td>
+              <input type="text" class="td_last_1" value="25" />
+            </td>
+            <td class="all_unit">13</td>
+          </tr>
+          <tr class="tr_color">
+            <td>操作命令 3:</td>
+            <td class="tr_point">占用字节</td>
+            <td>
+              <input type="text" class="td_from_1" value="29" />
+            </td>
+            <td>
+              <input type="text" class="td_last_1" value="40" />
+            </td>
+            <td class="all_unit">12</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+
+    <script src="../js/jquery-1.11.3.min.js"></script>
+    <script src="../js/konva.js"></script>
+    <!--<script src="js/Highcharts-10.0.0/code/highcharts.js"></script>-->
+    <!--<script src="js/Highcharts-10.0.0/code/modules/exporting.js"></script>-->
+    <!--<script src="js/Highcharts-10.0.0/code/modules/heatmap.js"></script>-->
+    <!--<script src="js/Highcharts-10.0.0/code/modules/treemap.js"></script>-->
+    <!--<script src="js/Highcharts-Stock-10.0.0/code/highstock.js"></script>-->
+    <!--<script src="js/Highcharts-Stock-10.0.0/code/stock_src.js"></script>-->
+    <!--<script src="js/Highcharts-Stock-10.0.0/code/highstock.src.js"></script>-->
+    <!--<script src="js/Highcharts-Stock-10.0.0/code/modules/exporting.js"></script>-->
+
+    <script>
+      /*****       ***********/
+      $("body").on("click", ".tr_point", function () {
+        var dex = $(this).index(".tr_point");
+        var from = parseInt($(this).parent().find(".td_from_1").val());
+        var last = parseInt($(this).parent().find(".td_last_1").val());
+        func_select([from, last]);
+        $(".tr_point").parent().css("backgroundColor", "#fff");
+        $(this).parent().css("backgroundColor", "#ddd");
+      });
+      $("body").on("click", ".btn_refresh", function () {
+        var all_unit = $(".all_unit");
+        var num = 0;
+        $.each(all_unit, function () {
+          num += parseInt($(this).text());
+        });
+        fun_rect([0], [num - 1]);
+      });
+
+      // window.onload = function () {
+      //     var can = document.getElementById('myCanvas');
+      //     var pro = can.innerHTML.substring(0, can.innerHTML.length - 1);
+      //     var cxt = can.getContext('2d');
+      // }
+      var ccc = document.getElementById("myCanvas");
+      var cxt = ccc.getContext("2d");
+      var ccc_2 = document.getElementById("myCanvas_2");
+      var cxt_2 = ccc_2.getContext("2d");
+      var ccc_3 = document.getElementById("myCanvas_3");
+      var cxt_3 = ccc_3.getContext("2d");
+      var ccc_4 = document.getElementById("myCanvas_4");
+      var cxt_4 = ccc_4.getContext("2d");
+      var ccc_5 = document.getElementById("myCanvas_5");
+      var cxt_5 = ccc_5.getContext("2d");
+      // cxt.fillStyle = "#aaa";
+      // cxt.fillRect(0,0,20,20);
+
+      function rect_click(select_unitArr) {
+        var width = 20;
+        var height = 20;
+        var ctxBox = cxt;
+        var restart_num;
+        for (var i = 0; i < 4097; i++) {
+          var y = i * height + i * 1;
+          for (var k = 1; k < 17; k++) {
+            var x = k * width + k * 5;
+            var num = i * 17 + k - (i + 1);
+            if (select_unitArr) {
+              if (num >= select_unitArr[0] && num <= select_unitArr[1]) {
+                cxt.fillStyle = "#666";
+                cxt.fillRect(x, y, width, height);
+                cxt_2.fillStyle = "#666";
+                cxt_2.fillRect(x, y - 21000, width, height);
+                cxt_3.fillStyle = "#666";
+                cxt_3.fillRect(x, y - 42000, width, height);
+                cxt_4.fillStyle = "#666";
+                cxt_4.fillRect(x, y - 63000, width, height);
+                cxt_5.fillStyle = "#666";
+                cxt_5.fillRect(x, y - 84000, width, height);
+              }
+            }
+          }
+        }
+      }
+
+      function func_select(select_unitArr) {
+        fun_rect([3, 13, 29], [11, 25, 40]);
+        rect_click(select_unitArr);
+      }
+
+      function unit_4(str) {
+        while (str.length < 4) {
+          str = "0" + str;
+        }
+        return str;
+      }
+      function _drawing(
+        canvas_,
+        start_num,
+        end_num,
+        from_num,
+        last_num,
+        base_num
+      ) {
+        var width = 20;
+        var height = 20;
+        for (var i = start_num; i <= end_num; i++) {
+          var y = i * height + i * 1;
+          for (var k = 0; k < 17; k++) {
+            var x = k * width + k * 5;
+            canvas_.fillStyle = "#ddd";
+            canvas_.fillRect(x, y, width, height);
+
+            //初始变色
+            var num = (i + base_num) * 17 + k - (i + base_num + 1);
+            var num_ = (i + base_num) * 17 + k;
+            if (from_num) {
+              var kkk = 0;
+              while (kkk < from_num.length) {
+                if (
+                  num >= from_num[kkk] &&
+                  num <= last_num[kkk] &&
+                  num != kkk * 17 - (i + base_num + 1)
+                ) {
+                  canvas_.fillStyle = "#adadad";
+                  canvas_.fillRect(x, y, width, height);
+                }
+                kkk++;
+              }
+            }
+            //序列号
+            if (num_ % 17 == 0) {
+              canvas_.clearRect(x, y, width, height);
+              canvas_.fillStyle = "#000";
+              canvas_.font = "9px Arial";
+              var index_text = i + base_num + 15 * (i + base_num) - 16;
+              index_text = parseInt(index_text).toString(16);
+              canvas_.fillText(unit_4(index_text).toLowerCase(), x, y - 1);
+            }
+          }
+        }
+      }
+      function fun_rect(from_num, last_num) {
+        _drawing(cxt, 0, 1000, from_num, last_num, 0);
+        _drawing(cxt_2, 0, 1000, from_num, last_num, 1000);
+        _drawing(cxt_3, 0, 1000, from_num, last_num, 2000);
+        _drawing(cxt_4, 0, 1000, from_num, last_num, 3000);
+        _drawing(cxt_5, 0, 96, from_num, last_num, 4000);
+      }
+
+      fun_rect([3, 13, 29], [11, 25, 99]);
+    </script>
+  </body>
+</html>
